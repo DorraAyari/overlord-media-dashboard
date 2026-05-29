@@ -402,6 +402,29 @@ let clubs=[
 
 let contentFilter='all';
 
+/* ═══ PERSISTENCE ═══ */
+const STORAGE_KEY='overlord_media_dashboard_v1';
+(function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return;
+    const s=JSON.parse(raw);
+    if(typeof s.goal==='number')goal=s.goal;
+    if(typeof s.raised==='number')raised=s.raised;
+    if(typeof s.investors==='number')investors=s.investors;
+    if(Array.isArray(s.offerFields))offerFields=s.offerFields;
+    if(Array.isArray(s.todos))todos=s.todos;
+    if(Array.isArray(s.events))events=s.events;
+    if(Array.isArray(s.contents))contents=s.contents;
+    if(Array.isArray(s.clubs))clubs=s.clubs;
+  }catch(e){console.warn('Load state failed',e);}
+})();
+function persist(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify({goal,raised,investors,offerFields,todos,events,contents,clubs}));
+  }catch(e){console.warn('Persist failed',e);}
+}
+
 /* ═══ UTILS ═══ */
 function toggleForm(id){document.getElementById(id).classList.toggle('open');}
 function showTab(tab,btn){
@@ -426,6 +449,7 @@ function updateProgress(){
   const pct=Math.min(100,Math.round((raised/goal)*100));
   document.getElementById('prog-bar').style.width=pct+'%';
   document.getElementById('prog-pct-label').textContent=pct+'%';
+  persist();
 }
 
 function renderOffer(){
@@ -444,14 +468,15 @@ function renderOffer(){
     c.appendChild(div);
   });
 }
-function saveOffer(i){offerFields[i].value=document.getElementById('of-v-'+i).value;}
-function deleteOffer(i){offerFields.splice(i,1);renderOffer();}
+function saveOffer(i){offerFields[i].value=document.getElementById('of-v-'+i).value;persist();}
+function deleteOffer(i){offerFields.splice(i,1);persist();renderOffer();}
 function addOfferField(){
   const label=document.getElementById('new-offer-label').value.trim();
   const value=document.getElementById('new-offer-value').value.trim();
   const detail=document.getElementById('new-offer-detail').value.trim();
   if(!label)return;
   offerFields.push({label,value,detail});
+  persist();
   document.getElementById('new-offer-label').value='';
   document.getElementById('new-offer-value').value='';
   document.getElementById('new-offer-detail').value='';
@@ -463,10 +488,10 @@ function renderTodos(){
   const list=document.getElementById('todo-list');list.innerHTML='';
   todos.forEach((t,i)=>{
     const div=document.createElement('div');div.className='todo-item';
-    div.innerHTML=`<input type="checkbox" class="todo-cb" ${t.done?'checked':''} onchange="todos[${i}].done=this.checked;renderTodos()">
+    div.innerHTML=`<input type="checkbox" class="todo-cb" ${t.done?'checked':''} onchange="todos[${i}].done=this.checked;persist();renderTodos()">
     <div class="todo-text ${t.done?'done':''}">${t.text}</div>
     <span class="todo-cat">${t.cat}</span>
-    <button class="btn-del" onclick="todos.splice(${i},1);renderTodos()" title="Supprimer">✕</button>`;
+    <button class="btn-del" onclick="todos.splice(${i},1);persist();renderTodos()" title="Supprimer">✕</button>`;
     list.appendChild(div);
   });
 }
@@ -474,6 +499,7 @@ function addTodo(){
   const input=document.getElementById('todo-input');
   if(!input.value.trim())return;
   todos.push({text:input.value.trim(),cat:'Perso',done:false});
+  persist();
   input.value='';renderTodos();
 }
 
@@ -507,7 +533,7 @@ function renderCalendar(){
       span.textContent=ev.title;
       span.title=(ev.note||'')+' — clic pour supprimer';
       const gi=events.indexOf(ev);
-      span.onclick=()=>{if(confirm('Supprimer "'+ev.title+'" ?')){events.splice(gi,1);renderCalendar();}};
+      span.onclick=()=>{if(confirm('Supprimer "'+ev.title+'" ?')){events.splice(gi,1);persist();renderCalendar();}};
       cell.appendChild(span);
     });
     grid.appendChild(cell);
@@ -532,6 +558,7 @@ function addEvent(){
   if(!title||!date)return;
   events.push({title,date,type:document.getElementById('ev-type').value,note:document.getElementById('ev-note').value,color:selectedColor});
   events.sort((a,b)=>a.date.localeCompare(b.date));
+  persist();
   document.getElementById('ev-title').value='';
   document.getElementById('ev-date').value='';
   document.getElementById('ev-note').value='';
@@ -564,12 +591,12 @@ function renderContent(){
     <div style="font-size:13px;color:var(--text);line-height:1.6">${c.body}</div>
     <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${(c.tags||[]).map(t=>'<span style="font-size:11px;color:var(--muted);background:var(--bg2);padding:2px 8px;border-radius:99px">#'+t+'</span>').join('')}</div>
     <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-      <select class="mini-select" onchange="contents[${ri}].status=this.value;renderContent()">
+      <select class="mini-select" onchange="contents[${ri}].status=this.value;persist();renderContent()">
         <option value="draft" ${c.status==='draft'?'selected':''}>Brouillon</option>
         <option value="planned" ${c.status==='planned'?'selected':''}>Planifié</option>
         <option value="published" ${c.status==='published'?'selected':''}>Publié</option>
       </select>
-      <button class="btn-del" onclick="contents.splice(${ri},1);renderContent()">Supprimer</button>
+      <button class="btn-del" onclick="contents.splice(${ri},1);persist();renderContent()">Supprimer</button>
     </div>`;
     list.appendChild(card);
   });
@@ -586,6 +613,7 @@ function saveContent(){
   if(!title||!date){alert('Titre et date requis.');return;}
   contents.push({title,date,channel:document.getElementById('nc-channel').value,status:document.getElementById('nc-status').value,body:document.getElementById('nc-body').value.trim(),tags:document.getElementById('nc-tags').value.split(',').map(t=>t.trim()).filter(Boolean)});
   contents.sort((a,b)=>a.date.localeCompare(b.date));
+  persist();
   ['nc-title','nc-date','nc-body','nc-tags'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('new-content-form').classList.remove('open');
   renderContent();
@@ -608,22 +636,22 @@ function renderClubs(){
         ${c.note?'<div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:2px">'+c.note+'</div>':''}
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
-        <select class="mini-select" onchange="clubs[${ri}].status=this.value;renderClubs()">
+        <select class="mini-select" onchange="clubs[${ri}].status=this.value;persist();renderClubs()">
           <option value="prospect" ${c.status==='prospect'?'selected':''}>Prospect</option>
           <option value="contact" ${c.status==='contact'?'selected':''}>Contacté</option>
           <option value="interesse" ${c.status==='interesse'?'selected':''}>Intéressé</option>
           <option value="engage" ${c.status==='engage'?'selected':''}>Engagé</option>
         </select>
-        <button class="btn-del" onclick="if(confirm('Supprimer ${c.name.replace(/'/g,"\\'")} ?')){clubs.splice(${ri},1);renderClubs();}">✕ Supprimer</button>
+        <button class="btn-del" onclick="if(confirm('Supprimer ${c.name.replace(/'/g,"\\'")} ?')){clubs.splice(${ri},1);persist();renderClubs();}">✕ Supprimer</button>
       </div>
     </div>
     <div class="club-bottom">
       <div class="club-contacted-row">
-        <input type="checkbox" id="cc-${ri}" ${c.contacted?'checked':''} onchange="clubs[${ri}].contacted=this.checked;renderClubs()">
+        <input type="checkbox" id="cc-${ri}" ${c.contacted?'checked':''} onchange="clubs[${ri}].contacted=this.checked;persist();renderClubs()">
         <label for="cc-${ri}">Contacté le</label>
-        <input type="date" value="${c.contactDate||''}" ${!c.contacted?'disabled':''} onchange="clubs[${ri}].contactDate=this.value">
+        <input type="date" value="${c.contactDate||''}" ${!c.contacted?'disabled':''} onchange="clubs[${ri}].contactDate=this.value;persist()">
       </div>
-      <textarea class="club-comment" placeholder="Commentaire libre…" onchange="clubs[${ri}].comment=this.value">${c.comment||''}</textarea>
+      <textarea class="club-comment" placeholder="Commentaire libre…" onchange="clubs[${ri}].comment=this.value;persist()">${c.comment||''}</textarea>
     </div>`;
     list.appendChild(card);
   });
@@ -637,6 +665,7 @@ function saveClub(){
   const name=document.getElementById('cf-name').value.trim();
   if(!name)return;
   clubs.push({name,type:document.getElementById('cf-type').value.trim(),contact:document.getElementById('cf-contact').value.trim(),status:document.getElementById('cf-status').value,note:document.getElementById('cf-note').value.trim(),contacted:false,contactDate:'',comment:''});
+  persist();
   ['cf-name','cf-type','cf-contact','cf-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('club-form').classList.remove('open');
   renderClubs();
@@ -645,6 +674,15 @@ function saveClub(){
 /* ═══ INIT ═══ */
 renderOffer();
 renderTodos();
+// Restaurer la barre de progression depuis l'état chargé
+(function initProgress(){
+  const pct=goal>0?Math.min(100,Math.round((raised/goal)*100)):0;
+  document.getElementById('prog-bar').style.width=pct+'%';
+  document.getElementById('prog-pct-label').textContent=pct+'%';
+  if(raised)document.getElementById('raised-input').value=raised;
+  if(investors)document.getElementById('investors-input').value=investors;
+  if(goal&&goal!==500000)document.getElementById('goal-input').value=goal;
+})();
 </script>
 </body>
 </html>
