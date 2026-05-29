@@ -402,27 +402,66 @@ let clubs=[
 
 let contentFilter='all';
 
-/* ═══ PERSISTENCE ═══ */
+/* ═══ PERSISTENCE — Postgres via /api/state ═══ */
 const STORAGE_KEY='overlord_media_dashboard_v1';
-(function loadState(){
+const API_URL='/api/state';
+let persistTimer=null;
+let lastServerState=null;
+
+function applyState(s){
+  if(!s||typeof s!=='object')return;
+  if(typeof s.goal==='number')goal=s.goal;
+  if(typeof s.raised==='number')raised=s.raised;
+  if(typeof s.investors==='number')investors=s.investors;
+  if(Array.isArray(s.offerFields))offerFields=s.offerFields;
+  if(Array.isArray(s.todos))todos=s.todos;
+  if(Array.isArray(s.events))events=s.events;
+  if(Array.isArray(s.contents))contents=s.contents;
+  if(Array.isArray(s.clubs))clubs=s.clubs;
+}
+
+function loadFromLocalCache(){
   try{
     const raw=localStorage.getItem(STORAGE_KEY);
-    if(!raw)return;
-    const s=JSON.parse(raw);
-    if(typeof s.goal==='number')goal=s.goal;
-    if(typeof s.raised==='number')raised=s.raised;
-    if(typeof s.investors==='number')investors=s.investors;
-    if(Array.isArray(s.offerFields))offerFields=s.offerFields;
-    if(Array.isArray(s.todos))todos=s.todos;
-    if(Array.isArray(s.events))events=s.events;
-    if(Array.isArray(s.contents))contents=s.contents;
-    if(Array.isArray(s.clubs))clubs=s.clubs;
-  }catch(e){console.warn('Load state failed',e);}
-})();
-function persist(){
+    if(raw)applyState(JSON.parse(raw));
+  }catch(e){console.warn('Local cache load failed',e);}
+}
+
+async function loadFromServer(){
   try{
-    localStorage.setItem(STORAGE_KEY,JSON.stringify({goal,raised,investors,offerFields,todos,events,contents,clubs}));
-  }catch(e){console.warn('Persist failed',e);}
+    const r=await fetch(API_URL,{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    if(data&&data.state&&Object.keys(data.state).length){
+      applyState(data.state);
+      lastServerState=JSON.stringify(data.state);
+      try{localStorage.setItem(STORAGE_KEY,lastServerState);}catch(e){}
+      return true;
+    }
+  }catch(e){console.warn('Server load failed, using local cache',e);}
+  return false;
+}
+
+async function pushToServer(){
+  const snapshot={goal,raised,investors,offerFields,todos,events,contents,clubs};
+  const payload=JSON.stringify(snapshot);
+  // Toujours mettre à jour le cache local
+  try{localStorage.setItem(STORAGE_KEY,payload);}catch(e){}
+  if(payload===lastServerState)return;
+  try{
+    const r=await fetch(API_URL,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({state:snapshot}),
+    });
+    if(r.ok)lastServerState=payload;
+  }catch(e){console.warn('Server push failed (changes saved locally)',e);}
+}
+
+function persist(){
+  // Debounce 400ms pour grouper les saisies clavier
+  if(persistTimer)clearTimeout(persistTimer);
+  persistTimer=setTimeout(pushToServer,400);
 }
 
 /* ═══ UTILS ═══ */
@@ -672,16 +711,40 @@ function saveClub(){
 }
 
 /* ═══ INIT ═══ */
-renderOffer();
-renderTodos();
-// Restaurer la barre de progression depuis l'état chargé
-(function initProgress(){
+function refreshProgressUI(){
   const pct=goal>0?Math.min(100,Math.round((raised/goal)*100)):0;
-  document.getElementById('prog-bar').style.width=pct+'%';
-  document.getElementById('prog-pct-label').textContent=pct+'%';
+  const bar=document.getElementById('prog-bar');
+  const lbl=document.getElementById('prog-pct-label');
+  if(bar)bar.style.width=pct+'%';
+  if(lbl)lbl.textContent=pct+'%';
   if(raised)document.getElementById('raised-input').value=raised;
   if(investors)document.getElementById('investors-input').value=investors;
   if(goal&&goal!==500000)document.getElementById('goal-input').value=goal;
+}
+
+(async function init(){
+  // 1) Affichage immédiat depuis le cache local (rapide)
+  const hadLocal=!!localStorage.getItem(STORAGE_KEY);
+  loadFromLocalCache();
+  renderOffer();
+  renderTodos();
+  refreshProgressUI();
+  // 2) Puis on récupère l'état serveur (canonique) et on re-render
+  const ok=await loadFromServer();
+  if(ok){
+    renderOffer();
+    renderTodos();
+    refreshProgressUI();
+    const active=document.querySelector('.tab.active');
+    if(active){
+      if(active.id==='tab-calendar')renderCalendar();
+      else if(active.id==='tab-content')renderContent();
+      else if(active.id==='tab-clubs')renderClubs();
+    }
+  } else if(hadLocal){
+    // Le serveur est vide mais on a des données locales → migrer
+    pushToServer();
+  }
 })();
 </script>
 </body>

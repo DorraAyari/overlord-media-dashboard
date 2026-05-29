@@ -1,13 +1,15 @@
 {
   "name": "overlord-media-dashboard",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Overlord Media — dashboard levée de fonds 2026",
+  "description": "Overlord Media — dashboard levée de fonds 2026 (backend Postgres)",
+  "main": "server.js",
   "scripts": {
-    "start": "serve -s . -n"
+    "start": "node server.js"
   },
   "dependencies": {
-    "serve": "^14.2.4"
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
   },
   "engines": {
     "node": ">=18"
