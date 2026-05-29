@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overlord Media — Dashboard Levée de fonds 2026</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --accent: #C8A96E; --accent-light: #f5eddc; --accent-dark: #8B6E3A;
+  --bg: #ffffff; --bg2: #f5f4f1; --bg3: #eeece8;
+  --border: rgba(0,0,0,0.10); --text: #1a1a18; --muted: #6b6a65;
+  --radius-md: 8px; --radius-lg: 12px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a18; --bg2: #242420; --bg3: #2e2e2a;
+    --border: rgba(255,255,255,0.10); --text: #f0ede6; --muted: #8a8880;
+  }
+}
+body { font-family: var(--font); background: var(--bg2); color: var(--text); min-height: 100vh; }
+.shell { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.brand-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; }
+.brand-logo { width: 44px; height: 44px; border-radius: 10px; background: #111; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; color: #C8A96E; letter-spacing: 0.5px; flex-shrink: 0; }
+.brand-title { font-size: 22px; font-weight: 500; color: var(--text); }
+.brand-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.nav { display: flex; gap: 2px; margin-bottom: 2rem; border-bottom: 0.5px solid var(--border); overflow-x: auto; }
+.nav-btn { padding: 9px 18px; font-size: 14px; background: none; border: none; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: var(--font); transition: color 0.15s; white-space: nowrap; }
+.nav-btn.active { color: var(--accent-dark); border-bottom-color: var(--accent); font-weight: 500; }
+.nav-btn:hover:not(.active) { color: var(--text); }
+.tab { display: none; }
+.tab.active { display: block; }
+.btn-primary { background: var(--accent); color: #fff; border: none; border-radius: var(--radius-md); padding: 8px 18px; font-size: 13px; cursor: pointer; font-family: var(--font); transition: opacity 0.15s; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-ghost { background: none; border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 7px 13px; font-size: 13px; cursor: pointer; color: var(--muted); font-family: var(--font); }
+.btn-ghost:hover { color: var(--text); background: var(--bg3); }
+.btn-del { background: none; border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--muted); font-family: var(--font); }
+.btn-del:hover { color: #c0392b; border-color: #c0392b; }
+.inline-form { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; display: none; }
+.inline-form.open { display: block; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-row input, .form-row select, .form-row textarea {
+  font-size: 13px; padding: 8px 10px; border: 0.5px solid var(--border);
+  border-radius: var(--radius-md); background: var(--bg2); color: var(--text);
+  font-family: var(--font); width: 100%;
+}
+.form-row textarea { min-height: 72px; resize: vertical; }
+.form-title { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+
+/* ── OVERVIEW ── */
+.progress-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.25rem; }
+.progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.progress-title { font-size: 15px; font-weight: 500; }
+.progress-pct { font-size: 14px; color: var(--accent-dark); font-weight: 500; }
+.progress-bar { height: 9px; background: var(--bg2); border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.5s ease; }
+.progress-inputs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.progress-inputs input { font-size: 13px; padding: 6px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); font-family: var(--font); width: 180px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+@media (max-width: 620px) { .two-col { grid-template-columns: 1fr; } }
+.card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; }
+.card-title { font-size: 15px; font-weight: 500; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; color: var(--text); }
+.offer-item { padding: 9px 0; border-bottom: 0.5px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.offer-item:last-child { border-bottom: none; }
+.offer-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+.offer-value-row { display: flex; gap: 6px; align-items: center; }
+.offer-value-row input { font-size: 13px; padding: 4px 8px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); font-family: var(--font); flex: 1; min-width: 0; }
+.save-btn { font-size: 11px; padding: 4px 10px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-md); cursor: pointer; white-space: nowrap; font-family: var(--font); }
+.todo-item { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+.todo-item:last-child { border-bottom: none; }
+.todo-cb { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+.todo-text { font-size: 13px; color: var(--text); flex: 1; }
+.todo-text.done { text-decoration: line-through; color: var(--muted); }
+.todo-cat { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+.add-todo { display: flex; gap: 8px; margin-top: 10px; }
+.add-todo input { flex: 1; font-size: 13px; padding: 7px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); font-family: var(--font); }
+.add-todo button { font-size: 13px; padding: 7px 14px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-md); cursor: pointer; }
+
+/* ── CALENDAR ── */
+.cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+.cal-nav { display: flex; gap: 8px; align-items: center; }
+.cal-nav button { background: none; border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 6px 12px; cursor: pointer; font-size: 15px; color: var(--text); }
+.cal-month-name { font-size: 17px; font-weight: 500; min-width: 130px; text-align: center; color: var(--text); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1rem; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+.leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day-head { text-align: center; font-size: 11px; color: var(--muted); padding: 5px 0; text-transform: uppercase; }
+.cal-cell { min-height: 80px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 5px; }
+.cal-cell.other-month { opacity: 0.28; }
+.cal-cell.today { border-color: var(--accent); }
+.cal-cell.weekend { background: var(--bg2); }
+.cal-day-num { font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 3px; }
+.cal-cell.today .cal-day-num { color: var(--accent-dark); font-weight: 700; }
+.cal-event { font-size: 10px; padding: 2px 5px; border-radius: 4px; margin-bottom: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.ev-post  { background: #E1F5EE; color: #0F6E56; }
+.ev-nl    { background: #E6F1FB; color: #185FA5; }
+.ev-club  { background: #FAEEDA; color: #854F0B; }
+.ev-levee { background: #f5eddc; color: #8B6E3A; }
+.ev-urgent{ background: #FCEBEB; color: #A32D2D; }
+.ev-key   { background: #EEEDFE; color: #534AB7; }
+.ev-autre { background: var(--bg2); color: var(--muted); }
+.color-swatches { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+.swatch { width: 22px; height: 22px; border-radius: 5px; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; }
+.swatch:hover { transform: scale(1.15); }
+.swatch.selected { border-color: var(--text); }
+
+/* ── CONTENT ── */
+.content-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; }
+.filters { display: flex; gap: 7px; flex-wrap: wrap; }
+.filter-btn { padding: 5px 13px; font-size: 12px; border: 0.5px solid var(--border); border-radius: 99px; background: none; cursor: pointer; color: var(--muted); font-family: var(--font); }
+.filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.content-list { display: flex; flex-direction: column; gap: 10px; margin-top: 1rem; }
+.content-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+.content-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.ch-badge { font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 99px; }
+.ch-linkedin   { background: #E6F1FB; color: #185FA5; }
+.ch-instagram  { background: #FBEAF0; color: #993556; }
+.ch-newsletter { background: #E1F5EE; color: #0F6E56; }
+.ch-twitter    { background: #FAEEDA; color: #854F0B; }
+.st-badge { font-size: 11px; padding: 2px 9px; border-radius: 99px; }
+.st-draft     { background: var(--bg2); color: var(--muted); }
+.st-planned   { background: #FAEEDA; color: #854F0B; }
+.st-published { background: #EAF3DE; color: #3B6D11; }
+.mini-select { font-size: 12px; padding: 4px 8px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--bg2); color: var(--text); font-family: var(--font); cursor: pointer; }
+
+/* ── CLUBS ── */
+.clubs-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1rem; }
+.stats-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+.stat-pill { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 5px 13px; font-size: 12px; color: var(--muted); }
+.stat-pill span { font-weight: 500; color: var(--text); }
+.clubs-search { padding: 8px 12px; font-size: 13px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); font-family: var(--font); width: 230px; }
+.clubs-list { display: flex; flex-direction: column; gap: 10px; margin-top: 1rem; }
+.club-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+.club-card-top { display: flex; gap: 12px; align-items: flex-start; }
+.club-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--accent-dark); flex-shrink: 0; }
+.club-info { flex: 1; min-width: 0; }
+.club-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.club-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.club-bottom { margin-top: 12px; padding-top: 12px; border-top: 0.5px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.club-contacted-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.club-contacted-row label { font-size: 12px; color: var(--muted); cursor: pointer; }
+.club-contacted-row input[type=checkbox] { accent-color: var(--accent); }
+.club-contacted-row input[type=date] { font-size: 12px; padding: 4px 8px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); font-family: var(--font); }
+.club-comment { width: 100%; font-size: 12px; padding: 7px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); font-family: var(--font); resize: vertical; min-height: 52px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="brand-bar">
+    <div class="brand-logo">OM</div>
+    <div>
+      <div class="brand-title">Overlord Media</div>
+      <div class="brand-sub">Dashboard · Levée de fonds communautaire 2026</div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="showTab('overview',this)">Vue générale</button>
+    <button class="nav-btn" onclick="showTab('calendar',this)">Calendrier</button>
+    <button class="nav-btn" onclick="showTab('content',this)">Contenus</button>
+    <button class="nav-btn" onclick="showTab('clubs',this)">Clubs &amp; Intermédiaires</button>
+  </div>
+
+  <!-- ═══════ VUE GÉNÉRALE ═══════ -->
+  <div id="tab-overview" class="tab active">
+    <div class="progress-card">
+      <div class="progress-header">
+        <span class="progress-title">Progression de la levée</span>
+        <span class="progress-pct" id="prog-pct-label">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-bar" style="width:0%"></div></div>
+      <div class="progress-inputs">
+        <input type="number" id="raised-input" placeholder="Montant levé (€)">
+        <input type="number" id="investors-input" placeholder="Nb investisseurs">
+        <input type="number" id="goal-input" placeholder="Objectif € (défaut 500 000)">
+        <button class="btn-primary" onclick="updateProgress()">Mettre à jour</button>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">
+          <span>Caractéristiques de l'offre</span>
+          <button class="btn-ghost" style="font-size:12px;padding:4px 10px;" onclick="toggleForm('add-offer-form')">+ Ajouter</button>
+        </div>
+        <div id="offer-fields"></div>
+        <div class="inline-form" id="add-offer-form" style="padding:1rem;margin-top:8px;">
+          <div class="form-row">
+            <input type="text" id="new-offer-label" placeholder="Intitulé (ex: Rendement)">
+            <input type="text" id="new-offer-value" placeholder="Valeur (ex: 6% annuel)">
+          </div>
+          <div class="form-row full">
+            <input type="text" id="new-offer-detail" placeholder="Détail (optionnel)">
+          </div>
+          <button class="btn-primary" onclick="addOfferField()">Ajouter</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">To-do list campagne</div>
+        <div id="todo-list"></div>
+        <div class="add-todo">
+          <input type="text" id="todo-input" placeholder="Nouvelle tâche…">
+          <button onclick="addTodo()">+ Ajouter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ CALENDRIER ═══════ -->
+  <div id="tab-calendar" class="tab">
+    <div class="cal-header">
+      <div class="cal-nav">
+        <button onclick="prevMonth()">&#8249;</button>
+        <span class="cal-month-name" id="cal-title"></span>
+        <button onclick="nextMonth()">&#8250;</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-ghost" onclick="goToday()">Aujourd'hui</button>
+        <button class="btn-primary" onclick="toggleForm('event-form')">+ Ajouter</button>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#5DCAA5"></div>Post réseaux</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#85B7EB"></div>Newsletter</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Club / Rencontre</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#C8A96E"></div>Étape levée</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#E24B4A"></div>Urgent</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#7F77DD"></div>Date clé</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#aaa"></div>Autre</div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="inline-form" id="event-form">
+      <div class="form-title">Nouvel événement</div>
+      <div class="form-row">
+        <input type="text" id="ev-title" placeholder="Titre">
+        <input type="date" id="ev-date" min="2026-01-01" max="2026-12-31">
+      </div>
+      <div class="form-row">
+        <select id="ev-type">
+          <option value="post">Post réseaux sociaux</option>
+          <option value="nl">Newsletter</option>
+          <option value="club">Club / Rencontre</option>
+          <option value="levee">Étape levée</option>
+          <option value="urgent">Urgent / Deadline</option>
+          <option value="key">Date clé</option>
+          <option value="autre">Autre</option>
+        </select>
+        <input type="text" id="ev-note" placeholder="Note (optionnel)">
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:7px;">Couleur personnalisée (optionnel)</div>
+        <div class="color-swatches" id="color-swatches">
+          <div class="swatch selected" data-color="" style="background:var(--bg2);border:0.5px solid var(--border);" title="Auto"></div>
+          <div class="swatch" data-color="#E24B4A" style="background:#E24B4A;" title="Rouge"></div>
+          <div class="swatch" data-color="#378ADD" style="background:#378ADD;" title="Bleu"></div>
+          <div class="swatch" data-color="#1D9E75" style="background:#1D9E75;" title="Vert"></div>
+          <div class="swatch" data-color="#EF9F27" style="background:#EF9F27;" title="Ambre"></div>
+          <div class="swatch" data-color="#7F77DD" style="background:#7F77DD;" title="Violet"></div>
+          <div class="swatch" data-color="#D4537E" style="background:#D4537E;" title="Rose"></div>
+          <div class="swatch" data-color="#C8A96E" style="background:#C8A96E;" title="Or"></div>
+          <div class="swatch" data-color="#888780" style="background:#888780;" title="Gris"></div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addEvent()">Ajouter au calendrier</button>
+    </div>
+  </div>
+
+  <!-- ═══════ CONTENUS ═══════ -->
+  <div id="tab-content" class="tab">
+    <div class="content-top">
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterContent('all',this)">Tous</button>
+        <button class="filter-btn" onclick="filterContent('linkedin',this)">LinkedIn</button>
+        <button class="filter-btn" onclick="filterContent('instagram',this)">Instagram</button>
+        <button class="filter-btn" onclick="filterContent('newsletter',this)">Newsletter</button>
+        <button class="filter-btn" onclick="filterContent('twitter',this)">X/Twitter</button>
+      </div>
+      <button class="btn-primary" onclick="toggleForm('new-content-form')">+ Nouveau contenu</button>
+    </div>
+    <div class="inline-form" id="new-content-form">
+      <div class="form-title">Nouveau contenu</div>
+      <div class="form-row">
+        <input type="text" id="nc-title" placeholder="Titre / sujet">
+        <input type="date" id="nc-date">
+      </div>
+      <div class="form-row">
+        <select id="nc-channel">
+          <option value="linkedin">LinkedIn</option>
+          <option value="instagram">Instagram</option>
+          <option value="newsletter">Newsletter</option>
+          <option value="twitter">X / Twitter</option>
+        </select>
+        <select id="nc-status">
+          <option value="draft">Brouillon</option>
+          <option value="planned">Planifié</option>
+          <option value="published">Publié</option>
+        </select>
+      </div>
+      <div class="form-row full">
+        <textarea id="nc-body" placeholder="Texte / brief du contenu…"></textarea>
+      </div>
+      <div class="form-row full">
+        <input type="text" id="nc-tags" placeholder="Tags séparés par des virgules">
+      </div>
+      <button class="btn-primary" onclick="saveContent()">Enregistrer</button>
+    </div>
+    <div class="content-list" id="content-list"></div>
+  </div>
+
+  <!-- ═══════ CLUBS ═══════ -->
+  <div id="tab-clubs" class="tab">
+    <div class="clubs-top">
+      <div class="stats-bar" id="clubs-stats"></div>
+      <button class="btn-primary" onclick="toggleForm('club-form')">+ Ajouter</button>
+    </div>
+    <input class="clubs-search" type="text" id="clubs-search" placeholder="Rechercher…" oninput="renderClubs()">
+    <div class="inline-form" id="club-form">
+      <div class="form-title">Nouveau club / intermédiaire</div>
+      <div class="form-row">
+        <input type="text" id="cf-name" placeholder="Nom">
+        <input type="text" id="cf-type" placeholder="Type (BA, family office, asso…)">
+      </div>
+      <div class="form-row">
+        <input type="text" id="cf-contact" placeholder="Contact (nom, email…)">
+        <select id="cf-status">
+          <option value="prospect">Prospect</option>
+          <option value="contact">Contacté</option>
+          <option value="interesse">Intéressé</option>
+          <option value="engage">Engagé</option>
+        </select>
+      </div>
+      <div class="form-row full">
+        <input type="text" id="cf-note" placeholder="Note (réseau, potentiel…)">
+      </div>
+      <button class="btn-primary" onclick="saveClub()">Enregistrer</button>
+    </div>
+    <div class="clubs-list" id="clubs-list"></div>
+  </div>
+
+</div><!-- /shell -->
+
+<script>
+/* ═══ STATE ═══ */
+let goal=500000, raised=0, investors=0;
+
+let offerFields=[
+  {label:'Ticket minimum',value:'1 000 €',detail:'Par investisseur communautaire'},
+  {label:'Instrument',value:'Obligations convertibles',detail:'Taux : 6% — Maturité : 3 ans'},
+  {label:'Plateforme',value:'À définir (Tudigo, Lita, Sowefund…)',detail:'Crowdfunding réglementé'},
+  {label:'Valorisation pré-money',value:'À définir',detail:''},
+  {label:'Avantages investisseurs',value:'Accès premium + badge + événements',detail:''},
+  {label:'Date ouverture',value:'01/04/2026',detail:''},
+  {label:'Date clôture',value:'30/06/2026',detail:''},
+];
+
+let todos=[
+  {text:'Choisir la plateforme de crowdfunding',cat:'Juridique',done:false},
+  {text:'Rédiger le mémorandum d\'information',cat:'Juridique',done:false},
+  {text:'Valider la valorisation avec un conseiller',cat:'Finance',done:false},
+  {text:'Créer la page campagne (visuel + vidéo)',cat:'Marketing',done:false},
+  {text:'Préparer le pitch deck investisseurs',cat:'Marketing',done:false},
+  {text:'Identifier 50 ambassadeurs communautaires',cat:'Réseau',done:false},
+  {text:'Lancer la newsletter pré-lancement',cat:'Comm',done:false},
+  {text:'Briefer l\'équipe sur les éléments de langage',cat:'Interne',done:false},
+];
+
+let calDate=new Date(2026,0,1);
+let selectedColor='';
+
+let events=[
+  {date:'2026-01-15',title:'Kick-off interne campagne',type:'levee',note:'',color:''},
+  {date:'2026-02-01',title:'Post LinkedIn annonce',type:'post',note:'',color:''},
+  {date:'2026-02-10',title:'Newsletter #1 — Intro levée',type:'nl',note:'',color:''},
+  {date:'2026-03-05',title:'Rencontre BA Paris',type:'club',note:'',color:''},
+  {date:'2026-04-01',title:'Ouverture officielle',type:'levee',note:'J-Day',color:'#E24B4A'},
+  {date:'2026-04-15',title:'Newsletter #2 — Momentum',type:'nl',note:'',color:''},
+  {date:'2026-05-10',title:'Rencontre Club Entrepreneurs',type:'club',note:'',color:''},
+  {date:'2026-06-30',title:'Clôture levée',type:'levee',note:'Deadline',color:'#E24B4A'},
+];
+
+let contents=[
+  {channel:'linkedin',date:'2026-02-01',title:'Lancement : pourquoi lever en communauté',body:'Overlord Media ouvre sa levée à sa communauté. Nos investisseurs les plus convaincants sont ceux qui nous écoutent chaque semaine.',status:'planned',tags:['lancement','communauté']},
+  {channel:'newsletter',date:'2026-02-10',title:'Newsletter #1 — Rejoignez l\'aventure',body:'Chers abonnés, aujourd\'hui on vous invite à faire plus que suivre Overlord Media : à en devenir actionnaires.',status:'draft',tags:['intro','investissement']},
+  {channel:'instagram',date:'2026-03-15',title:'Carrousel — 5 raisons d\'investir',body:'Slide 1 : "Et si vous étiez actionnaire de vos créateurs préférés ?" — Slide 2 : Notre audience — Slide 3 : Ce que vous gagnez — Slide 4 : Comment ça marche — Slide 5 : CTA',status:'draft',tags:['carrousel','cta']},
+  {channel:'twitter',date:'2026-02-05',title:'Thread — Notre logique de levée communautaire',body:'Pourquoi lever en crowdfunding plutôt qu\'en VC classique ? 1/ Nos vrais investisseurs sont nos auditeurs. 2/ On refuse de diluer notre ligne éditoriale…',status:'planned',tags:['thread','vision']},
+];
+
+let clubs=[
+  {name:'Club Business Angels Île-de-France',type:'Business Angels',contact:'Marie Dupont',status:'contact',note:'Réseau actif, 80+ membres',contacted:true,contactDate:'2026-01-10',comment:'Réunion mensuelle le 15/02, se positionner pour présenter la campagne.'},
+  {name:'France Angels',type:'Réseau national BA',contact:'contact@franceangels.org',status:'prospect',note:'Fédération nationale',contacted:false,contactDate:'',comment:''},
+  {name:'Réseau Entreprendre Paris',type:'Accompagnement',contact:'Laurent M.',status:'interesse',note:'Intérêt confirmé',contacted:true,contactDate:'2026-01-05',comment:'Très favorable. Propose d\'organiser un dîner de présentation en mars.'},
+  {name:'Tudigo Invest Club',type:'Plateforme crowd',contact:'team@tudigo.co',status:'engage',note:'Partenaire plateforme potentiel',contacted:true,contactDate:'2025-12-20',comment:'Accord de principe pour mise en avant sur la plateforme. En attente du contrat.'},
+  {name:'HEC Alumni Invest',type:'Association alumni',contact:'invest@hecalumni.fr',status:'prospect',note:'Accès réseau grandes écoles',contacted:false,contactDate:'',comment:''},
+  {name:'Family Office Lenoir & Associés',type:'Family Office',contact:'j.lenoir@lenoir-fo.fr',status:'interesse',note:'Tickets 20-100k€, médias / sports',contacted:true,contactDate:'2026-01-18',comment:'Intéressé par le ticket 50k€. Demande un one-pager actualisé.'},
+];
+
+let contentFilter='all';
+
+/* ═══ UTILS ═══ */
+function toggleForm(id){document.getElementById(id).classList.toggle('open');}
+function showTab(tab,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+  if(tab==='calendar')renderCalendar();
+  if(tab==='clubs')renderClubs();
+  if(tab==='content')renderContent();
+  if(tab==='overview'){renderOffer();renderTodos();}
+}
+
+/* ═══ OVERVIEW ═══ */
+function updateProgress(){
+  const r=parseFloat(document.getElementById('raised-input').value);
+  const inv=parseInt(document.getElementById('investors-input').value);
+  const g=parseFloat(document.getElementById('goal-input').value);
+  if(!isNaN(r))raised=r;
+  if(!isNaN(inv))investors=inv;
+  if(!isNaN(g)&&g>0)goal=g;
+  const pct=Math.min(100,Math.round((raised/goal)*100));
+  document.getElementById('prog-bar').style.width=pct+'%';
+  document.getElementById('prog-pct-label').textContent=pct+'%';
+}
+
+function renderOffer(){
+  const c=document.getElementById('offer-fields');c.innerHTML='';
+  offerFields.forEach((f,i)=>{
+    const div=document.createElement('div');div.className='offer-item';
+    div.innerHTML=`<div>
+      <div class="offer-label">${f.label}</div>
+      <div class="offer-value-row">
+        <input type="text" value="${f.value}" id="of-v-${i}">
+        <button class="save-btn" onclick="saveOffer(${i})">OK</button>
+      </div>
+      ${f.detail?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${f.detail}</div>`:''}
+    </div>
+    <button class="btn-del" onclick="deleteOffer(${i})" title="Supprimer">✕</button>`;
+    c.appendChild(div);
+  });
+}
+function saveOffer(i){offerFields[i].value=document.getElementById('of-v-'+i).value;}
+function deleteOffer(i){offerFields.splice(i,1);renderOffer();}
+function addOfferField(){
+  const label=document.getElementById('new-offer-label').value.trim();
+  const value=document.getElementById('new-offer-value').value.trim();
+  const detail=document.getElementById('new-offer-detail').value.trim();
+  if(!label)return;
+  offerFields.push({label,value,detail});
+  document.getElementById('new-offer-label').value='';
+  document.getElementById('new-offer-value').value='';
+  document.getElementById('new-offer-detail').value='';
+  document.getElementById('add-offer-form').classList.remove('open');
+  renderOffer();
+}
+
+function renderTodos(){
+  const list=document.getElementById('todo-list');list.innerHTML='';
+  todos.forEach((t,i)=>{
+    const div=document.createElement('div');div.className='todo-item';
+    div.innerHTML=`<input type="checkbox" class="todo-cb" ${t.done?'checked':''} onchange="todos[${i}].done=this.checked;renderTodos()">
+    <div class="todo-text ${t.done?'done':''}">${t.text}</div>
+    <span class="todo-cat">${t.cat}</span>
+    <button class="btn-del" onclick="todos.splice(${i},1);renderTodos()" title="Supprimer">✕</button>`;
+    list.appendChild(div);
+  });
+}
+function addTodo(){
+  const input=document.getElementById('todo-input');
+  if(!input.value.trim())return;
+  todos.push({text:input.value.trim(),cat:'Perso',done:false});
+  input.value='';renderTodos();
+}
+
+/* ═══ CALENDAR ═══ */
+const TYPE_CLASSES={post:'ev-post',nl:'ev-nl',club:'ev-club',levee:'ev-levee',urgent:'ev-urgent',key:'ev-key',autre:'ev-autre'};
+const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+function renderCalendar(){
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  document.getElementById('cal-title').textContent=MONTHS[m]+' '+y;
+  const grid=document.getElementById('cal-grid');grid.innerHTML='';
+  ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].forEach(d=>{
+    const h=document.createElement('div');h.className='cal-day-head';h.textContent=d;grid.appendChild(h);
+  });
+  const first=new Date(y,m,1);
+  const startDay=first.getDay()===0?6:first.getDay()-1;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const today=new Date();
+  for(let i=0;i<startDay;i++){const c=document.createElement('div');c.className='cal-cell other-month';grid.appendChild(c);}
+  for(let d=1;d<=daysInMonth;d++){
+    const cell=document.createElement('div');
+    const dow=new Date(y,m,d).getDay();
+    cell.className='cal-cell'+(dow===0||dow===6?' weekend':'');
+    const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    if(d===today.getDate()&&m===today.getMonth()&&y===today.getFullYear())cell.classList.add('today');
+    cell.innerHTML='<div class="cal-day-num">'+d+'</div>';
+    events.filter(e=>e.date===ds).forEach(ev=>{
+      const span=document.createElement('div');
+      span.className='cal-event '+(TYPE_CLASSES[ev.type]||'ev-autre');
+      if(ev.color)span.style.cssText='background:'+ev.color+'22;color:'+ev.color+';';
+      span.textContent=ev.title;
+      span.title=(ev.note||'')+' — clic pour supprimer';
+      const gi=events.indexOf(ev);
+      span.onclick=()=>{if(confirm('Supprimer "'+ev.title+'" ?')){events.splice(gi,1);renderCalendar();}};
+      cell.appendChild(span);
+    });
+    grid.appendChild(cell);
+  }
+}
+function prevMonth(){calDate.setMonth(calDate.getMonth()-1);renderCalendar();}
+function nextMonth(){calDate.setMonth(calDate.getMonth()+1);renderCalendar();}
+function goToday(){calDate=new Date(2026,new Date().getMonth(),1);renderCalendar();}
+
+document.addEventListener('click',e=>{
+  const sw=e.target.closest('.swatch');
+  if(sw){
+    document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+    sw.classList.add('selected');
+    selectedColor=sw.dataset.color||'';
+  }
+});
+
+function addEvent(){
+  const title=document.getElementById('ev-title').value.trim();
+  const date=document.getElementById('ev-date').value;
+  if(!title||!date)return;
+  events.push({title,date,type:document.getElementById('ev-type').value,note:document.getElementById('ev-note').value,color:selectedColor});
+  events.sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('ev-title').value='';
+  document.getElementById('ev-date').value='';
+  document.getElementById('ev-note').value='';
+  selectedColor='';
+  document.querySelectorAll('.swatch').forEach((s,i)=>s.classList.toggle('selected',i===0));
+  document.getElementById('event-form').classList.remove('open');
+  const[y2,mo2]=date.split('-').map(Number);
+  calDate=new Date(y2,mo2-1,1);
+  renderCalendar();
+}
+
+/* ═══ CONTENT ═══ */
+function renderContent(){
+  const list=document.getElementById('content-list');list.innerHTML='';
+  const filtered=contentFilter==='all'?contents:contents.filter(c=>c.channel===contentFilter);
+  const chLabels={linkedin:'LinkedIn',instagram:'Instagram',newsletter:'Newsletter',twitter:'X / Twitter'};
+  filtered.forEach(c=>{
+    const ri=contents.indexOf(c);
+    const sClass={draft:'st-draft',planned:'st-planned',published:'st-published'}[c.status];
+    const sLabel={draft:'Brouillon',planned:'Planifié',published:'Publié'}[c.status];
+    const card=document.createElement('div');card.className='content-card';
+    card.innerHTML=`<div class="content-card-top">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="ch-badge ch-${c.channel}">${chLabels[c.channel]||c.channel}</span>
+        <span class="st-badge ${sClass}">${sLabel}</span>
+      </div>
+      <span style="font-size:12px;color:var(--muted)">${new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'})}</span>
+    </div>
+    <div style="font-size:14px;font-weight:500;margin-bottom:6px;color:var(--text)">${c.title}</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.6">${c.body}</div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${(c.tags||[]).map(t=>'<span style="font-size:11px;color:var(--muted);background:var(--bg2);padding:2px 8px;border-radius:99px">#'+t+'</span>').join('')}</div>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+      <select class="mini-select" onchange="contents[${ri}].status=this.value;renderContent()">
+        <option value="draft" ${c.status==='draft'?'selected':''}>Brouillon</option>
+        <option value="planned" ${c.status==='planned'?'selected':''}>Planifié</option>
+        <option value="published" ${c.status==='published'?'selected':''}>Publié</option>
+      </select>
+      <button class="btn-del" onclick="contents.splice(${ri},1);renderContent()">Supprimer</button>
+    </div>`;
+    list.appendChild(card);
+  });
+}
+function filterContent(f,btn){
+  contentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderContent();
+}
+function saveContent(){
+  const title=document.getElementById('nc-title').value.trim();
+  const date=document.getElementById('nc-date').value;
+  if(!title||!date){alert('Titre et date requis.');return;}
+  contents.push({title,date,channel:document.getElementById('nc-channel').value,status:document.getElementById('nc-status').value,body:document.getElementById('nc-body').value.trim(),tags:document.getElementById('nc-tags').value.split(',').map(t=>t.trim()).filter(Boolean)});
+  contents.sort((a,b)=>a.date.localeCompare(b.date));
+  ['nc-title','nc-date','nc-body','nc-tags'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('new-content-form').classList.remove('open');
+  renderContent();
+}
+
+/* ═══ CLUBS ═══ */
+function renderClubs(){
+  const q=(document.getElementById('clubs-search').value||'').toLowerCase();
+  const filtered=clubs.filter(c=>c.name.toLowerCase().includes(q)||c.type.toLowerCase().includes(q));
+  const list=document.getElementById('clubs-list');list.innerHTML='';
+  filtered.forEach(c=>{
+    const ri=clubs.indexOf(c);
+    const initials=c.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const card=document.createElement('div');card.className='club-card';
+    card.innerHTML=`<div class="club-card-top">
+      <div class="club-avatar">${initials}</div>
+      <div class="club-info">
+        <div class="club-name">${c.name}</div>
+        <div class="club-meta">${c.type}${c.contact?' · '+c.contact:''}</div>
+        ${c.note?'<div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:2px">'+c.note+'</div>':''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
+        <select class="mini-select" onchange="clubs[${ri}].status=this.value;renderClubs()">
+          <option value="prospect" ${c.status==='prospect'?'selected':''}>Prospect</option>
+          <option value="contact" ${c.status==='contact'?'selected':''}>Contacté</option>
+          <option value="interesse" ${c.status==='interesse'?'selected':''}>Intéressé</option>
+          <option value="engage" ${c.status==='engage'?'selected':''}>Engagé</option>
+        </select>
+        <button class="btn-del" onclick="if(confirm('Supprimer ${c.name.replace(/'/g,"\\'")} ?')){clubs.splice(${ri},1);renderClubs();}">✕ Supprimer</button>
+      </div>
+    </div>
+    <div class="club-bottom">
+      <div class="club-contacted-row">
+        <input type="checkbox" id="cc-${ri}" ${c.contacted?'checked':''} onchange="clubs[${ri}].contacted=this.checked;renderClubs()">
+        <label for="cc-${ri}">Contacté le</label>
+        <input type="date" value="${c.contactDate||''}" ${!c.contacted?'disabled':''} onchange="clubs[${ri}].contactDate=this.value">
+      </div>
+      <textarea class="club-comment" placeholder="Commentaire libre…" onchange="clubs[${ri}].comment=this.value">${c.comment||''}</textarea>
+    </div>`;
+    list.appendChild(card);
+  });
+  document.getElementById('clubs-stats').innerHTML=`
+    <div class="stat-pill">Total : <span>${clubs.length}</span></div>
+    <div class="stat-pill">Contactés : <span>${clubs.filter(c=>c.status==='contact').length}</span></div>
+    <div class="stat-pill">Intéressés : <span>${clubs.filter(c=>c.status==='interesse').length}</span></div>
+    <div class="stat-pill">Engagés : <span>${clubs.filter(c=>c.status==='engage').length}</span></div>`;
+}
+function saveClub(){
+  const name=document.getElementById('cf-name').value.trim();
+  if(!name)return;
+  clubs.push({name,type:document.getElementById('cf-type').value.trim(),contact:document.getElementById('cf-contact').value.trim(),status:document.getElementById('cf-status').value,note:document.getElementById('cf-note').value.trim(),contacted:false,contactDate:'',comment:''});
+  ['cf-name','cf-type','cf-contact','cf-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('club-form').classList.remove('open');
+  renderClubs();
+}
+
+/* ═══ INIT ═══ */
+renderOffer();
+renderTodos();
+</script>
+</body>
+</html>
