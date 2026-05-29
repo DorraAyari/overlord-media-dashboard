@@ -8,11 +8,27 @@ const PORT = process.env.PORT || 3000;
 const STATE_ID = 'default';
 
 // ─── Postgres ──────────────────────────────────────────────
+const DB_URL = process.env.DATABASE_URL || '';
+if (!DB_URL) {
+  console.warn('[db] DATABASE_URL is not set!');
+} else {
+  // Log un extrait sûr (sans le mot de passe)
+  const masked = DB_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@');
+  console.log('[db] Connecting to:', masked);
+}
+
+// Railway: hostname *.railway.internal = réseau privé, pas de SSL
+// Hostnames publics rlwy.net = SSL requis
+const isInternal = DB_URL.includes('.railway.internal');
+const needsSsl = !!DB_URL && !isInternal;
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('railway')
-    ? { rejectUnauthorized: false }
-    : false,
+  connectionString: DB_URL,
+  ssl: needsSsl ? { rejectUnauthorized: false } : false,
+});
+
+pool.on('error', (err) => {
+  console.error('[db] Pool error:', err);
 });
 
 async function initDb() {
@@ -70,11 +86,18 @@ app.put('/api/state', async (req, res) => {
 });
 
 app.get('/api/health', async (req, res) => {
+  const hasDbUrl = !!DB_URL;
   try {
-    await pool.query('SELECT 1');
-    res.json({ status: 'ok' });
+    const { rows } = await pool.query('SELECT NOW() as ts');
+    res.json({ status: 'ok', db_time: rows[0].ts, has_db_url: hasDbUrl, ssl: needsSsl });
   } catch (err) {
-    res.status(500).json({ status: 'error', error: err.message });
+    res.status(500).json({
+      status: 'error',
+      message: err.message || String(err),
+      code: err.code || null,
+      has_db_url: hasDbUrl,
+      ssl: needsSsl,
+    });
   }
 });
 
