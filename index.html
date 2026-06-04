@@ -38,6 +38,15 @@ body { font-family: var(--font); background: var(--bg2); color: var(--text); min
 .btn-ghost:hover { color: var(--text); background: var(--bg3); }
 .btn-del { background: none; border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--muted); font-family: var(--font); }
 .btn-del:hover { color: #c0392b; border-color: #c0392b; }
+.btn-edit { background: none; border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--muted); font-family: var(--font); }
+.btn-edit:hover { color: var(--accent); border-color: var(--accent); }
+.content-card.editing { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.content-edit-form { display: flex; flex-direction: column; gap: 10px; }
+.content-edit-form input, .content-edit-form select, .content-edit-form textarea { width: 100%; font-family: var(--font); font-size: 13px; padding: 8px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--text); box-sizing: border-box; }
+.content-edit-form textarea { min-height: 90px; resize: vertical; }
+.content-edit-form .form-row { display: flex; gap: 10px; }
+.content-edit-form .form-row > * { flex: 1; }
+.content-edit-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
 .inline-form { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; display: none; }
 .inline-form.open { display: block; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
@@ -401,6 +410,9 @@ let clubs=[
 ];
 
 let contentFilter='all';
+let editingContentIdx=null;
+function escAttr(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escText(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 /* ═══ PERSISTENCE — Postgres via /api/state ═══ */
 const STORAGE_KEY='overlord_media_dashboard_v1';
@@ -616,29 +628,77 @@ function renderContent(){
   const chLabels={linkedin:'LinkedIn',instagram:'Instagram',newsletter:'Newsletter',twitter:'X / Twitter'};
   filtered.forEach(c=>{
     const ri=contents.indexOf(c);
-    const sClass={draft:'st-draft',planned:'st-planned',published:'st-published'}[c.status];
-    const sLabel={draft:'Brouillon',planned:'Planifié',published:'Publié'}[c.status];
-    const card=document.createElement('div');card.className='content-card';
-    card.innerHTML=`<div class="content-card-top">
-      <div style="display:flex;gap:8px;align-items:center;">
-        <span class="ch-badge ch-${c.channel}">${chLabels[c.channel]||c.channel}</span>
-        <span class="st-badge ${sClass}">${sLabel}</span>
+    const card=document.createElement('div');
+    if(editingContentIdx===ri){
+      card.className='content-card editing';
+      card.innerHTML=`<div class="content-edit-form">
+        <div class="form-row">
+          <input type="text" id="edit-title-${ri}" value="${escAttr(c.title)}" placeholder="Titre / sujet">
+          <input type="date" id="edit-date-${ri}" value="${escAttr(c.date)}">
+        </div>
+        <div class="form-row">
+          <select id="edit-channel-${ri}">
+            <option value="linkedin" ${c.channel==='linkedin'?'selected':''}>LinkedIn</option>
+            <option value="instagram" ${c.channel==='instagram'?'selected':''}>Instagram</option>
+            <option value="newsletter" ${c.channel==='newsletter'?'selected':''}>Newsletter</option>
+            <option value="twitter" ${c.channel==='twitter'?'selected':''}>X / Twitter</option>
+          </select>
+          <select id="edit-status-${ri}">
+            <option value="draft" ${c.status==='draft'?'selected':''}>Brouillon</option>
+            <option value="planned" ${c.status==='planned'?'selected':''}>Planifié</option>
+            <option value="published" ${c.status==='published'?'selected':''}>Publié</option>
+          </select>
+        </div>
+        <textarea id="edit-body-${ri}" placeholder="Texte / brief du contenu…">${escText(c.body)}</textarea>
+        <input type="text" id="edit-tags-${ri}" value="${escAttr((c.tags||[]).join(', '))}" placeholder="Tags séparés par des virgules">
+        <div class="content-edit-actions">
+          <button class="btn-del" onclick="cancelEditContent()">Annuler</button>
+          <button class="btn-primary" onclick="saveEditContent(${ri})">Enregistrer</button>
+        </div>
+      </div>`;
+    }else{
+      const sClass={draft:'st-draft',planned:'st-planned',published:'st-published'}[c.status];
+      const sLabel={draft:'Brouillon',planned:'Planifié',published:'Publié'}[c.status];
+      card.className='content-card';
+      card.innerHTML=`<div class="content-card-top">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="ch-badge ch-${c.channel}">${chLabels[c.channel]||c.channel}</span>
+          <span class="st-badge ${sClass}">${sLabel}</span>
+        </div>
+        <span style="font-size:12px;color:var(--muted)">${new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'})}</span>
       </div>
-      <span style="font-size:12px;color:var(--muted)">${new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'})}</span>
-    </div>
-    <div style="font-size:14px;font-weight:500;margin-bottom:6px;color:var(--text)">${c.title}</div>
-    <div style="font-size:13px;color:var(--text);line-height:1.6">${c.body}</div>
-    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${(c.tags||[]).map(t=>'<span style="font-size:11px;color:var(--muted);background:var(--bg2);padding:2px 8px;border-radius:99px">#'+t+'</span>').join('')}</div>
-    <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-      <select class="mini-select" onchange="contents[${ri}].status=this.value;persist();renderContent()">
-        <option value="draft" ${c.status==='draft'?'selected':''}>Brouillon</option>
-        <option value="planned" ${c.status==='planned'?'selected':''}>Planifié</option>
-        <option value="published" ${c.status==='published'?'selected':''}>Publié</option>
-      </select>
-      <button class="btn-del" onclick="contents.splice(${ri},1);persist();renderContent()">Supprimer</button>
-    </div>`;
+      <div style="font-size:14px;font-weight:500;margin-bottom:6px;color:var(--text)">${c.title}</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.6">${c.body}</div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${(c.tags||[]).map(t=>'<span style="font-size:11px;color:var(--muted);background:var(--bg2);padding:2px 8px;border-radius:99px">#'+t+'</span>').join('')}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+        <select class="mini-select" onchange="contents[${ri}].status=this.value;persist();renderContent()">
+          <option value="draft" ${c.status==='draft'?'selected':''}>Brouillon</option>
+          <option value="planned" ${c.status==='planned'?'selected':''}>Planifié</option>
+          <option value="published" ${c.status==='published'?'selected':''}>Publié</option>
+        </select>
+        <button class="btn-edit" onclick="startEditContent(${ri})">Modifier</button>
+        <button class="btn-del" onclick="if(confirm('Supprimer ce contenu ?')){contents.splice(${ri},1);persist();renderContent()}">Supprimer</button>
+      </div>`;
+    }
     list.appendChild(card);
   });
+}
+function startEditContent(i){editingContentIdx=i;renderContent();const t=document.getElementById('edit-title-'+i);if(t)t.focus();}
+function cancelEditContent(){editingContentIdx=null;renderContent();}
+function saveEditContent(i){
+  const title=document.getElementById('edit-title-'+i).value.trim();
+  const date=document.getElementById('edit-date-'+i).value;
+  if(!title||!date){alert('Titre et date requis.');return;}
+  contents[i].title=title;
+  contents[i].date=date;
+  contents[i].channel=document.getElementById('edit-channel-'+i).value;
+  contents[i].status=document.getElementById('edit-status-'+i).value;
+  contents[i].body=document.getElementById('edit-body-'+i).value.trim();
+  contents[i].tags=document.getElementById('edit-tags-'+i).value.split(',').map(t=>t.trim()).filter(Boolean);
+  contents.sort((a,b)=>a.date.localeCompare(b.date));
+  editingContentIdx=null;
+  persist();
+  renderContent();
 }
 function filterContent(f,btn){
   contentFilter=f;
